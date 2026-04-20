@@ -19,20 +19,20 @@ public class PlayerHealth : MonoBehaviour
     public List<Image> healIcons;
 
     public event Action<int> OnHealthChanged;
+    public Action<int> OnHealChanged;
 
-    // 🔥 DECORATOR SYSTEM
     private IPowerUp powerUp = new BasePowerUp();
 
-    // 🔥 Cooldowns
     private float shieldCooldown = 0f;
     private float damageCooldown = 0f;
 
-    // 🔥 Active timers
     private float shieldTimer = 0f;
     private float damageTimer = 0f;
 
     private bool isShieldActive = false;
     private bool isDamageActive = false;
+
+    public GameOverUI gameOverUI;
 
     void Start()
     {
@@ -41,71 +41,55 @@ public class PlayerHealth : MonoBehaviour
         currentState = new AliveState();
 
         if (healWarningText != null)
-        {
             healWarningText.gameObject.SetActive(false);
-        }
 
         CheckLowHealth();
+
         OnHealthChanged?.Invoke(hp);
+        OnHealChanged?.Invoke(currentHeals);
     }
 
     void Update()
     {
         currentState?.Handle(this);
 
-        // 🔥 Cooldowns
-        if (shieldCooldown > 0)
-            shieldCooldown -= Time.deltaTime;
+        if (shieldCooldown > 0) shieldCooldown -= Time.deltaTime;
+        if (damageCooldown > 0) damageCooldown -= Time.deltaTime;
 
-        if (damageCooldown > 0)
-            damageCooldown -= Time.deltaTime;
-
-        // 🔥 Shield active
         if (isShieldActive)
         {
             shieldTimer -= Time.deltaTime;
-
             if (shieldTimer <= 0)
             {
                 isShieldActive = false;
                 powerUp = new BasePowerUp();
-                Debug.Log("Shield Ended");
             }
         }
 
-        // 🔥 Damage active
         if (isDamageActive)
         {
             damageTimer -= Time.deltaTime;
-
             if (damageTimer <= 0)
             {
                 isDamageActive = false;
                 powerUp = new BasePowerUp();
-                Debug.Log("Double Damage Ended");
             }
         }
 
-        // 🔥 E → Shield (10 sec cooldown)
         if (Input.GetKeyDown(KeyCode.E) && shieldCooldown <= 0)
         {
             ApplyShield();
             shieldTimer = 10f;
             isShieldActive = true;
             shieldCooldown = 10f;
-
-            Debug.Log("Shield Activated (10s)");
         }
 
-        // 🔥 Q → Double Damage (60 sec cooldown)
         if (Input.GetKeyDown(KeyCode.Q) && damageCooldown <= 0)
         {
             ApplyDoubleDamage();
             damageTimer = 10f;
             isDamageActive = true;
             damageCooldown = 60f;
-
-            Debug.Log("Double Damage Activated (10s)");
         }
     }
 
@@ -124,7 +108,7 @@ public class PlayerHealth : MonoBehaviour
         {
             hp = 0;
             OnHealthChanged?.Invoke(hp);
-            GameOver();
+            SetState(new DeadState());
             return;
         }
 
@@ -134,24 +118,11 @@ public class PlayerHealth : MonoBehaviour
 
     public void Heal(int amount)
     {
-        if (currentHeals <= 0)
-        {
-            Debug.Log("No heals left!");
-            return;
-        }
-
-        if (hp >= maxHP)
-        {
-            Debug.Log("Already at full health!");
-            return;
-        }
-
-        amount = powerUp.ModifyHeal(amount);
+        if (currentHeals <= 0) return;
+        if (hp >= maxHP) return;
 
         hp += amount;
-
-        if (hp > maxHP)
-            hp = maxHP;
+        if (hp > maxHP) hp = maxHP;
 
         int index = currentHeals - 1;
 
@@ -162,8 +133,15 @@ public class PlayerHealth : MonoBehaviour
 
         currentHeals--;
 
-        CheckLowHealth();
+        OnHealChanged?.Invoke(currentHeals);
         OnHealthChanged?.Invoke(hp);
+
+        CheckLowHealth();
+    }
+
+    public int GetHealCharges()
+    {
+        return currentHeals;
     }
 
     void CheckLowHealth()
@@ -171,38 +149,81 @@ public class PlayerHealth : MonoBehaviour
         int threshold = Mathf.RoundToInt(maxHP * 0.3f);
 
         if (hp <= threshold)
-        {
             ShowHealWarning();
-        }
         else
-        {
             HideHealWarning();
-        }
     }
 
     public void ShowHealWarning()
     {
         if (healWarningText != null)
-        {
             healWarningText.gameObject.SetActive(true);
-        }
     }
 
     public void HideHealWarning()
     {
         if (healWarningText != null)
-        {
             healWarningText.gameObject.SetActive(false);
-        }
     }
 
     public void GameOver()
     {
         gameObject.SetActive(false);
+
+        if (gameOverUI != null)
+            gameOverUI.ShowGameOver(GameManager.Instance.level);
+
         Time.timeScale = 0f;
     }
 
-    // 🔥 DECORATOR METHODS
+    public void ResetPlayer()
+    {
+        Debug.Log("ResetPlayer called");
+
+        hp = maxHP;
+        currentHeals = maxHeals;
+
+        // 🔥 FIX: Restore heal icons
+        foreach (Image icon in healIcons)
+        {
+            if (icon != null)
+                icon.gameObject.SetActive(true);
+        }
+
+        gameObject.SetActive(true);
+
+        currentState = new AliveState();
+
+        shieldCooldown = 0f;
+        damageCooldown = 0f;
+        shieldTimer = 0f;
+        damageTimer = 0f;
+
+        isShieldActive = false;
+        isDamageActive = false;
+
+        powerUp = new BasePowerUp();
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.simulated = true;
+        }
+
+        PlayerMovement move = GetComponent<PlayerMovement>();
+        if (move != null) move.enabled = true;
+
+        PlayerShooting shoot = GetComponent<PlayerShooting>();
+        if (shoot != null) shoot.enabled = true;
+
+        HideHealWarning();
+
+        OnHealthChanged?.Invoke(hp);
+        OnHealChanged?.Invoke(currentHeals);
+
+        Debug.Log("Player reset complete");
+    }
 
     public void ApplyShield()
     {
@@ -214,14 +235,12 @@ public class PlayerHealth : MonoBehaviour
         powerUp = new DoubleDamagePowerUp();
     }
 
-    // 🔥 UI GETTERS
-
     public float GetShieldCooldown()
     {
         return shieldCooldown;
     }
 
-    public float GetHealCooldown() // still used by UI (Q ability)
+    public float GetHealCooldown()
     {
         return damageCooldown;
     }
@@ -231,7 +250,7 @@ public class PlayerHealth : MonoBehaviour
         return isShieldActive;
     }
 
-    public bool IsHealActive() // reused for Q ability
+    public bool IsHealActive()
     {
         return isDamageActive;
     }

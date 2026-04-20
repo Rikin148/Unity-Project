@@ -1,12 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 using UnityEngine;
 
 public class AliveState : IPlayerState
 {
     public void Handle(PlayerHealth player)
     {
+       
+        // 🔥 ENSURE PLAYER IS ACTIVE
+        if (!player.gameObject.activeSelf)
+        {
+            player.gameObject.SetActive(true);
+        }
+
         player.HideHealWarning();
 
         if (player.hp <= 0)

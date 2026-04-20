@@ -12,9 +12,17 @@ public class GameFacade : MonoBehaviour
 
     private int enemiesAlive = 0;
 
+    // 🔥 TRACK ALL ENEMIES CREATED BY FACTORY
+    private List<GameObject> spawnedEnemies = new List<GameObject>();
+
     public void Initialize(GameObject enemyPrefab)
     {
-        factory = new EnemyFactory(enemyPrefab);
+        factory = new EnemyFactory(enemyPrefab, this);
+    }
+
+    public void RegisterEnemy(GameObject enemy)
+    {
+        spawnedEnemies.Add(enemy);
     }
 
     public void StartLevel(int level)
@@ -29,7 +37,6 @@ public class GameFacade : MonoBehaviour
         enemiesAlive = level;
 
         float[] rowsY = { 6f, 5f, 4f, 3f, 2f };
-
         List<Vector3> usedPositions = new List<Vector3>();
 
         for (int i = 0; i < level; i++)
@@ -60,9 +67,7 @@ public class GameFacade : MonoBehaviour
                 safetyCounter++;
 
                 if (safetyCounter > 20)
-                {
                     break;
-                }
 
             } while (!validPosition);
 
@@ -70,26 +75,25 @@ public class GameFacade : MonoBehaviour
 
             string type = (i % 2 == 0) ? "zigzag" : "horizontal";
 
-            factory.CreateEnemy(type, pos);
+            // 🔥 CREATE ENEMY USING FACTORY
+            GameObject enemy = factory.CreateEnemy(type, pos);
+
+            // 🔥 REGISTER ENEMY FOR TRACKING
+            if (enemy != null)
+            {
+                spawnedEnemies.Add(enemy);
+            }
         }
     }
 
-    public void OnEnemyDied(ref int level, ref int enemiesAlive, MonoBehaviour caller)
+    // 🔥 CALLED WHEN ENEMY DIES
+    public void EnemyDied()
     {
         enemiesAlive--;
 
         if (enemiesAlive <= 0)
         {
-            level++;
-
-            if (level <= 10)
-            {
-                caller.Invoke("SpawnNextLevel", 1.5f);
-            }
-            else
-            {
-                Debug.Log("YOU WIN!");
-            }
+            Debug.Log("LEVEL COMPLETE");
         }
     }
 
@@ -101,5 +105,18 @@ public class GameFacade : MonoBehaviour
     public void SetEnemiesAlive(int count)
     {
         enemiesAlive = count;
+    }
+
+    // 🔥 CLEAN RESET (NO FINDOBJECTS)
+    public void ResetGame()
+    {
+        foreach (GameObject enemy in spawnedEnemies)
+        {
+            if (enemy != null)
+                Destroy(enemy);
+        }
+
+        spawnedEnemies.Clear();
+        enemiesAlive = 0;
     }
 }

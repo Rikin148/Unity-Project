@@ -4,8 +4,18 @@ using UnityEngine;
 
 public class DeadState : IPlayerState
 {
+    private bool hasDied = false;
+
     public void Handle(PlayerHealth player)
     {
-        player.GameOver();
+        
+        if (!hasDied)
+        {
+            hasDied = true;
+
+            Debug.Log("DeadState Triggered");
+
+            player.GameOver();
+        }
     }
 }

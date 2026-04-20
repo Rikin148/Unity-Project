@@ -14,6 +14,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI levelText;
 
     public GameFacade gameFacade;
+    public GameObject player;
+
+
 
     void Awake()
     {
@@ -22,28 +25,64 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // ✅ ONLY initialize, DO NOT start game
         gameFacade.Initialize(enemyPrefab);
     }
 
-    // 🔥 NEW FUNCTION (called from Menu)
+    // 🔥 START GAME
     public void StartGame()
     {
         level = 1;
+
+        UpdateLevelUI();
+
         SpawnNextLevel();
+
+        //player.SetState(new AliveState());
+        player.SetActive(true);
+        if (player != null)
+        {
+            PlayerHealth ph = player.GetComponent<PlayerHealth>();
+            if (ph != null)
+            {
+                ph.ResetPlayer();
+            }
+        }
+
+        if (PlayerBulletPool.Instance != null)
+            PlayerBulletPool.Instance.ResetPool();
+
+        if (EnemyBulletPool.Instance != null)
+            EnemyBulletPool.Instance.ResetPool();
     }
 
     void SpawnNextLevel()
     {
-        gameFacade.StartLevel(level);
+        if (gameFacade != null)
+            gameFacade.StartLevel(level);
     }
 
+    // 🔥 CALLED BY ENEMY WHEN IT DIES
     public void EnemyDied()
     {
-        int enemiesAlive = gameFacade.GetEnemiesAlive();
+        if (gameFacade != null)
+        {
+            gameFacade.EnemyDied();
 
-        gameFacade.OnEnemyDied(ref level, ref enemiesAlive, this);
+            // 🔥 CHECK IF LEVEL COMPLETE
+            if (gameFacade.GetEnemiesAlive() <= 0)
+            {
+                level++;
 
-        gameFacade.SetEnemiesAlive(enemiesAlive);
+                UpdateLevelUI();
+
+                Invoke(nameof(SpawnNextLevel), 1.5f);
+            }
+        }
+    }
+
+    void UpdateLevelUI()
+    {
+        if (levelText != null)
+            levelText.text = "Level: " + level;
     }
 }

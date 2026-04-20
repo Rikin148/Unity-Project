@@ -18,6 +18,13 @@ public class PowerUpUI : MonoBehaviour
 
     void Update()
     {
+        // 🔥 AUTO-RECONNECT PLAYER IF LOST
+        if (player == null)
+        {
+            player = FindObjectOfType<PlayerHealth>();
+            return;
+        }
+
         // 🛡️ SHIELD
         if (player.IsShieldActive())
         {

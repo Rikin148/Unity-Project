@@ -6,9 +6,13 @@ public class EnemyFactory
 {
     private GameObject enemyPrefab;
 
-    public EnemyFactory(GameObject prefab)
+    // 🔥 Add reference to facade
+    private GameFacade facade;
+
+    public EnemyFactory(GameObject prefab, GameFacade facadeRef)
     {
         enemyPrefab = prefab;
+        facade = facadeRef;
     }
 
     public GameObject CreateEnemy(string type, Vector3 position)
@@ -16,17 +20,21 @@ public class EnemyFactory
         // Create enemy
         GameObject enemy = Object.Instantiate(enemyPrefab, position, Quaternion.identity);
 
-        // 🔥 Get movement controller (NOT EnemyHealth anymore)
+        // 🔥 Get movement controller
         EnemyMovementController controller = enemy.GetComponent<EnemyMovementController>();
 
-        // Assign movement strategy
-        if (type == "zigzag")
+        if (controller != null)
         {
-            controller.SetMovement(new ZigZagMovement());
+            if (type == "zigzag")
+                controller.SetMovement(new ZigZagMovement());
+            else
+                controller.SetMovement(new HorizontalMovement());
         }
-        else
+
+        // 🔥 REGISTER WITH FACADE (IMPORTANT)
+        if (facade != null && enemy != null)
         {
-            controller.SetMovement(new HorizontalMovement());
+            facade.RegisterEnemy(enemy);
         }
 
         return enemy;

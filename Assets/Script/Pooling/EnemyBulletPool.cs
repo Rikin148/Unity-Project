@@ -42,4 +42,15 @@ public class EnemyBulletPool : MonoBehaviour
         pool.Add(newBullet);
         return newBullet;
     }
+
+    public void ResetPool()
+    {
+        foreach (GameObject bullet in pool)
+        {
+            if (bullet != null)
+            {
+                bullet.SetActive(false); // 🔥 deactivate all bullets
+            }
+        }
+    }
 }
