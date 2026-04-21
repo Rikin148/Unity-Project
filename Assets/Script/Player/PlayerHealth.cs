@@ -1,9 +1,8 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -33,6 +32,13 @@ public class PlayerHealth : MonoBehaviour
     private bool isDamageActive = false;
 
     public GameOverUI gameOverUI;
+
+    private IInputAdapter inputAdapter;
+
+    void Awake()
+    {
+        inputAdapter = new UnityInputAdapter();
+    }
 
     void Start()
     {
@@ -76,7 +82,7 @@ public class PlayerHealth : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && shieldCooldown <= 0)
+        if (inputAdapter.ShieldAbilityPressed() && shieldCooldown <= 0)
         {
             ApplyShield();
             shieldTimer = 10f;
@@ -84,7 +90,7 @@ public class PlayerHealth : MonoBehaviour
             shieldCooldown = 10f;
         }
 
-        if (Input.GetKeyDown(KeyCode.Q) && damageCooldown <= 0)
+        if (inputAdapter.DoubleDamageAbilityPressed() && damageCooldown <= 0)
         {
             ApplyDoubleDamage();
             damageTimer = 10f;
@@ -227,12 +233,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void ApplyShield()
     {
-        powerUp = new ShieldPowerUp();
+        powerUp = new ShieldPowerUp(new BasePowerUp());
     }
 
     public void ApplyDoubleDamage()
     {
-        powerUp = new DoubleDamagePowerUp();
+        powerUp = new DoubleDamagePowerUp(new BasePowerUp());
     }
 
     public float GetShieldCooldown()

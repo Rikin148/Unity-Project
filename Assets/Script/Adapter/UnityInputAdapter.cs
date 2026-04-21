@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class UnityInputAdapter : IInputAdapter
@@ -12,5 +10,15 @@ public class UnityInputAdapter : IInputAdapter
     public bool HealPressed()
     {
         return Input.GetMouseButtonDown(1);
+    }
+
+    public bool ShieldAbilityPressed()
+    {
+        return Input.GetKeyDown(KeyCode.E);
+    }
+
+    public bool DoubleDamageAbilityPressed()
+    {
+        return Input.GetKeyDown(KeyCode.Q);
     }
 }

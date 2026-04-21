@@ -1,11 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class DoubleDamagePowerUp : BasePowerUp
+public class DoubleDamagePowerUp : PowerUpDecorator
 {
+    public DoubleDamagePowerUp(IPowerUp inner) : base(inner) { }
+
     public override int ModifyDamage(int damage)
     {
-        return damage * 2; // 🔥 DOUBLE DAMAGE
+        return wrapped.ModifyDamage(damage) * 2;
     }
 }

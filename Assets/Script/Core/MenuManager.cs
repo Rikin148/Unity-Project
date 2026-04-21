@@ -5,7 +5,6 @@ using UnityEngine;
 public class MenuManager : MonoBehaviour
 {
     public GameObject mainMenu;
-    public GameObject recordPanel;
     public GameObject gameUI;
     public GameObject howToPlayPanel;
     public GameObject gameOverPanel;
@@ -15,7 +14,7 @@ public class MenuManager : MonoBehaviour
     public GameObject player;
     public GameFacade gameFacade;
 
-    public RecordUI recordUI;
+    
 
     // 🔥 START GAME (FULL RESET)
     public void StartGame()
@@ -24,7 +23,6 @@ public class MenuManager : MonoBehaviour
 
         // UI
         mainMenu.SetActive(false);
-        recordPanel.SetActive(false);
         howToPlayPanel.SetActive(false);
         gameOverPanel.SetActive(false);
         gameUI.SetActive(true);
@@ -48,20 +46,6 @@ public class MenuManager : MonoBehaviour
 
     }
 
-    // 🔥 RECORDS
-    public void DisplayRecords()
-    {
-        recordPanel.SetActive(true);
-
-        if (recordUI != null)
-            recordUI.ShowRecords();
-    }
-
-    public void CloseRecords()
-    {
-        recordPanel.SetActive(false);
-    }
-
     // 🔥 HOW TO PLAY
     public void ShowHowToPlay()
     {
@@ -79,7 +63,6 @@ public class MenuManager : MonoBehaviour
         Time.timeScale = 1f;
 
         gameUI.SetActive(false);
-        recordPanel.SetActive(false);
         howToPlayPanel.SetActive(false);
         gameOverPanel.SetActive(false);
 

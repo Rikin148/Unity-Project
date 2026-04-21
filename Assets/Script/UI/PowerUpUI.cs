@@ -14,8 +14,6 @@ public class PowerUpUI : MonoBehaviour
     public Image shieldIcon;
     public Image healIcon;
 
-    private float pulseSpeed = 4f;
-
     void Update()
     {
         // 🔥 AUTO-RECONNECT PLAYER IF LOST

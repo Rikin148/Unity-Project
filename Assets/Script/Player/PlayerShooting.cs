@@ -1,13 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerShooting : MonoBehaviour
 {
     public Transform firePoint;
 
+    private IInputAdapter inputAdapter;
     private ICommand shootCommand;
     private ICommand healCommand;
+
+    void Awake()
+    {
+        inputAdapter = new UnityInputAdapter();
+    }
 
     void Start()
     {
@@ -19,12 +23,12 @@ public class PlayerShooting : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (inputAdapter.ShootPressed())
         {
             shootCommand.Execute();
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (inputAdapter.HealPressed())
         {
             healCommand.Execute();
         }

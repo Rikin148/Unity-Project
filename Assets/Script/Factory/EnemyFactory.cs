@@ -1,24 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyFactory
 {
-    private GameObject enemyPrefab;
-
-    // 🔥 Add reference to facade
+    private readonly EnemyPrototype enemyPrototype;
     private GameFacade facade;
 
     public EnemyFactory(GameObject prefab, GameFacade facadeRef)
     {
-        enemyPrefab = prefab;
+        enemyPrototype = new EnemyPrototype(prefab);
         facade = facadeRef;
     }
 
     public GameObject CreateEnemy(string type, Vector3 position)
     {
-        // Create enemy
-        GameObject enemy = Object.Instantiate(enemyPrefab, position, Quaternion.identity);
+        GameObject enemy = enemyPrototype.Clone(position, Quaternion.identity);
 
         // 🔥 Get movement controller
         EnemyMovementController controller = enemy.GetComponent<EnemyMovementController>();
